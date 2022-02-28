@@ -4,7 +4,7 @@ import chisel3._
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
 
-class MandelbrotSpec extends AnyFlatSpec with ChiselScalatestTester {
+class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 	behavior of "MandelbrotFn"
 	it should "calculate z^2 + c correctly" in {
 		test(new MandelbrotFn(16, 8)) { dut =>
