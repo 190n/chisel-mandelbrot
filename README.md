@@ -7,7 +7,7 @@ The Mandelbrot set is the set of complex numbers _c_ such that the following fun
 
 <!-- low-budget LaTeX -->
 <p align="center">
-<em>f<sub>c</sub>(z) = z<sup>2</sup> + c</em>
+	<em>f<sub>c</sub>(z) = z<sup>2</sup> + c</em>
 </p>
 
 So far, I have written [a Chisel module](./src/main/scala/mandelbrot/MandelbrotFn.scala) implementing that function on fixed-point complex numbers, [a tester for it](./src/test/scala/mandelbrot/MandelbrotTester.scala), [a Scala model of complex numbers](./src/test/scala/mandelbrot/ComplexModel.scala) (currently supports addition, multiplication, and the Mandelbrot function), and [its tester](./src/test/scala/mandelbrot/ComplexModelTester.scala).
