@@ -6,9 +6,9 @@ Eventually, this will be a Chisel generator that renders the Mandelbrot set.
 The Mandelbrot set is the set of complex numbers _c_ such that this function:
 
 <!-- low-budget LaTeX -->
-<center>
+<p align="center">
 <em>f<sub>c</sub>(z) = z<sup>2</sup> + c</em>
-</center>
+</p>
 
 , when iterated starting with _z = 0_ (i.e. _f(f(f(c)))_), does not diverge (reach a magnitude greater than 2.0).
 
