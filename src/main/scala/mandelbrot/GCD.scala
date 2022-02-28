@@ -1,6 +1,6 @@
 // See README.md for license details.
 
-package gcd
+package mandelbrot
 
 import chisel3._
 
