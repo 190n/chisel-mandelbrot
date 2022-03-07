@@ -16,6 +16,11 @@ class Complex(width: Int, binaryPoint: Int) extends Bundle {
 	val re = FixedPoint(width.W, binaryPoint.BP)
 	// imaginary
 	val im = FixedPoint(width.W, binaryPoint.BP)
+
+	override def toPrintable: Printable = {
+		val signChar = Mux(im < 0.F(binaryPoint.BP), '-'.U, '+'.U)
+		p"${re} ${Character(signChar)} (${im.abs})i"
+	}
 }
 
 object Complex {
