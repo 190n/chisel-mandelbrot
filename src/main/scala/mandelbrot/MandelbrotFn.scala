@@ -48,6 +48,7 @@ class MandelbrotFn(precision: Int) extends Module {
 		io.out.re := (io.z.re * io.z.re) - (io.z.im * io.z.im) + io.c.re
 		io.out.im := ((io.z.re * io.z.im) << 1) + io.c.im
 	}.otherwise {
-		io.out := DontCare
+		io.out.re := 0.F(precision.BP)
+		io.out.im := 0.F(precision.BP)
 	}
 }
