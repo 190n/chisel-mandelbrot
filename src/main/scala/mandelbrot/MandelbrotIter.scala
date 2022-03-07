@@ -13,12 +13,13 @@ class MandelbrotIter(val precision: Int, val iters: Int) extends Module {
 	val z = Reg(Complex(precision))
 	val c = Reg(Complex(precision))
 	val counting = RegInit(false.B)
-	io.c.ready := !counting
-	io.out.valid := false.B
-	io.out.bits := DontCare
 	val didDiverge = RegInit(false.B)
 	val (iter, willWrap) = Counter(0 to iters, counting)
 	val mfn = Module(new MandelbrotFn(precision))
+
+	io.c.ready := !counting
+	io.out.valid := false.B
+	io.out.bits := DontCare
 	mfn.io.z := z
 	mfn.io.c := c
 	mfn.io.enable := counting && !didDiverge
