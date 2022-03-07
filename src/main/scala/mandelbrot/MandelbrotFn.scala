@@ -24,6 +24,8 @@ object Complex {
 			_.re -> re.F(width.W, binaryPoint.BP),
 			_.im -> im.F(width.W, binaryPoint.BP),
 		)
+
+	def apply(precision: Int) = new Complex(precision + 4, precision)
 }
 
 /**
