@@ -341,3 +341,5 @@ hs_err_pid*
 
 .metals
 .vscode
+.bloop/
+project/**/metals.sbt
