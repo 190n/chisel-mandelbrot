@@ -34,10 +34,10 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 			dut.io.out.valid.expect(false.B)
 			dut.clock.step()
 			z = ComplexModel.f(c, z)
-			println(f"[model] (${z.re}) + (${z.im})i")
+			// println(f"[model] (${z.re}) + (${z.im})i")
 			if (z.abs > 2.0) {
 				didDiverge = true
-				println("[model] diverged")
+				// println("[model] diverged")
 			}
 		}
 

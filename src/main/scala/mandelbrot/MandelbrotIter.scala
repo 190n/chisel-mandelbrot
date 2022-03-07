@@ -34,13 +34,13 @@ class MandelbrotIter(val precision: Int, val iters: Int) extends Module {
 		mfn.io.z := z
 		mfn.io.c := c
 		z := mfn.io.out
-		printf(p"[hw] (${mfn.io.out.re.asUInt}) + (${mfn.io.out.im.asUInt})i\n")
+		printf(p"[hw] ${mfn.io.out}\n")
 		// if |z| > 2.0
 		val abs = z.re * z.re + z.im * z.im
 		// compare with 4 since we didn't take square root
 		when(abs > 4.F(precision.BP)) {
 			didDiverge := true.B
-			printf(p"[hw] diverged\n")
+			// printf(p"[hw] diverged\n")
 		}
 	}.elsewhen(willWrap) {
 		counting := false.B
