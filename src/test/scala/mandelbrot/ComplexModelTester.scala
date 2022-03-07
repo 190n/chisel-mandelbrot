@@ -22,4 +22,8 @@ behavior of "ComplexModel"
 		assert(result.re == 0.29296875)
 		assert(result.im == 0.703125)
 	}
+
+	it should "calculate absolute value correctly" in {
+		assert(ComplexModel(3, -4).abs == 5)
+	}
 }

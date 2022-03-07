@@ -10,6 +10,8 @@ case class ComplexModel(re: Double, im: Double) {
 		this.re * that.re - this.im * that.im,
 		this.re * that.im + this.im * that.re,
 	)
+
+	def abs = Math.sqrt(re * re + im * im)
 }
 
 object ComplexModel {
