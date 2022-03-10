@@ -31,4 +31,13 @@ object Complex {
 		)
 
 	def apply(precision: Int) = new Complex(precision + 4, precision)
+
+	def apply(re: FixedPoint, im: FixedPoint) =
+		(new Complex(
+			Math.max(re.getWidth, im.getWidth),
+			Math.max(re.binaryPoint.get.toInt, im.binaryPoint.get.toInt),
+		).Lit(
+			_.re -> re,
+			_.im -> im,
+		))
 }
