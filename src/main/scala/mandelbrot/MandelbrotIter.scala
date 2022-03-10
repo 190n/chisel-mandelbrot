@@ -34,7 +34,7 @@ class MandelbrotIter(val precision: Int, val iters: Int) extends Module {
 		mfn.io.z := z
 		mfn.io.c := c
 		z := mfn.io.out
-		printf(p"[hw] ${mfn.io.out}\n")
+		// printf(p"[hw] ${mfn.io.out}\n")
 		// if |z| > 2.0
 		val abs = z.re * z.re + z.im * z.im
 		// compare with 4 since we didn't take square root
