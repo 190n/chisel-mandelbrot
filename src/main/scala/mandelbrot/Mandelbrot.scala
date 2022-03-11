@@ -70,6 +70,7 @@ class Mandelbrot(p: MandelbrotParams) extends Module {
 			c.re := new_re
 			when(new_re >= p.xMax.F(p.precision.BP)) {
 				val new_im = c.im + p.step.F(p.precision.BP)
+				c.re := p.xMin.F(p.precision.BP)
 				c.im := new_im
 				when(new_im >= p.yMax.F(p.precision.BP)) {
 					willFinish := true.B
