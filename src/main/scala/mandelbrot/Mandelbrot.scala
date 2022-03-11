@@ -34,7 +34,6 @@ class MandelbrotIO(p: MandelbrotParams) extends Bundle {
 class Mandelbrot(val p: MandelbrotParams) extends Module {
 	val io = IO(new MandelbrotIO(p))
 	val results = SyncReadMem(p.rows * p.cols, Bool())
-	// val results = Reg(Vec(p.rows, Vec(p.cols, Bool())))
 	val iterators = Seq.fill(p.parallelism)(Module(new MandelbrotIter(p.precision, p.iters)))
 	iterators.foreach { it =>
 		it.io.c.valid := false.B
