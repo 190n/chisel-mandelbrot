@@ -28,4 +28,21 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 		assert(p.step == 0.0625)
 		assert(p.elementsPerTransfer == 10)
 	}
+
+	behavior of "Mandelbrot"
+	it should "just show me the output" in {
+		// precision 2 = 10x10
+		// expect 1000 cycles?
+		val p = new MandelbrotParams(2, 10, 2, 20)
+		assert(p.rows == 10)
+		assert(p.cols == 10)
+		test(new Mandelbrot(p)) { dut =>
+			var cycles = 0
+			while (dut.io.outBlock.valid.peekBoolean() == false) {
+				cycles += 1
+				dut.clock.step(1)
+			}
+			println(f"started transferring after $cycles cycles")
+		}
+	}
 }

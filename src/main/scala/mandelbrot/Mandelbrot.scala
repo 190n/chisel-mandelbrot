@@ -10,12 +10,12 @@ case class MandelbrotParams(
 	cyclesPerTransfer: Int = 1
 ) {
 	// boundaries must be precise to at least 1/4
-	require(precision > 2)
+	require(precision >= 2)
 
-	val xMin = -2f
-	val xMax = 0.5
-	val yMin = -1.25
-	val yMax = 1.25
+	val xMin = -2.0f
+	val xMax =  0.5f
+	val yMin = -1.25f
+	val yMax =  1.25f
 
 	val rows = ((xMax - xMin) * (1 << precision)).toInt
 	val cols = ((yMax - yMin) * (1 << precision)).toInt
@@ -34,19 +34,65 @@ class MandelbrotIO(p: MandelbrotParams) extends Bundle {
 class Mandelbrot(p: MandelbrotParams) extends Module {
 	val io = IO(new MandelbrotIO(p))
 	val results = Reg(Vec(p.rows, Vec(p.cols, Bool())))
-	val iterators = Seq.fill(p.parallelism)(new MandelbrotIter(p.precision, p.iters))
+	val iterators = Seq.fill(p.parallelism)(Module(new MandelbrotIter(p.precision, p.iters)))
+	iterators.foreach { it =>
+		it.io.c.valid := false.B
+		it.io.c.bits := DontCare
+	}
 
 	// states
-	val ready :: computing :: sending :: Nil = Enum(3)
-	val state = RegInit(ready)
-	val c = Complex(p.xMin.F(p.precision.BP), p.yMin.F(p.precision.BP))
-	c.im := c.im + 0.1.F(p.precision.BP)
+	val computing :: sending :: done :: Nil = Enum(3)
+	val state = RegInit(computing)
+	val c = RegInit(Complex(p.xMin.F(p.precision.BP), p.yMin.F(p.precision.BP)))
+	// whether we will be done with the whole thing after the next batch of iterations finishes
+	val willFinish = RegInit(false.B)
+	val (sendCycle, doneSending) = Counter(state === sending, p.cyclesPerTransfer)
 
-	when(state === ready) {
+	io.outBlock.valid := state === sending
+	io.outBlock.bits := DontCare
 
-	}.elsewhen(state === computing) {
+	when(state === computing) {
+		// when they're all ready
+		when(iterators.map{ _.io.c.ready }.reduce{ _ && _ }) {
+			for (i <- 0 until p.parallelism) {
+				// calculate input to this iterator
+				val c_iter = Wire(Complex(p.precision))
+				c_iter.re := c.re + (p.step * i).F(p.precision.BP)
+				c_iter.im := c.im
+				printf(p"connecting up $c_iter ")
+				iterators(i).io.c.valid := true.B
+				iterators(i).io.c.bits := c_iter
+			}
+			printf("\n")
 
+			// prepare the point where our next iteration will start
+			val new_re = c.re + (p.step * p.parallelism).F(p.precision.BP)
+			c.re := new_re
+			when(new_re >= p.xMax.F(p.precision.BP)) {
+				val new_im = c.im + p.step.F(p.precision.BP)
+				c.im := new_im
+				when(new_im >= p.yMax.F(p.precision.BP)) {
+					willFinish := true.B
+				}
+			}
+		}
+
+		// all done
+		when(iterators.map{ _.io.out.valid }.reduce{ _ && _} && willFinish) {
+			state := sending
+		}
 	}.elsewhen(state === sending) {
+		val elementsSoFar = sendCycle * p.elementsPerTransfer.U
+		val row = elementsSoFar / p.cols.U
+		val firstCol = elementsSoFar % p.cols.U
+		for (i <- 0 until p.elementsPerTransfer) {
+			val col = firstCol + i.U
+			// should be a diagonal line
+			io.outBlock.bits(i) := row === col
+		}
 
+		when(doneSending) {
+			state := done
+		}
 	}
 }
