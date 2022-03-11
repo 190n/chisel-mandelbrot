@@ -6,8 +6,12 @@ import chisel3.experimental.FixedPoint
 
 class MandelbrotIter(val precision: Int, val iters: Int) extends Module {
 	val io = IO(new Bundle {
-		val c   = Flipped(Decoupled(Complex(precision)))
-		val out = Valid(Bool())
+		val c      = Flipped(Decoupled(Complex(precision)))
+		val out    = Valid(new Bundle {
+			val result = Bool()
+			// send this on output so that Mandelbrot doesn't have to recalculate
+			val c      = Complex(precision)
+		})
 	})
 
 	val z = Reg(Complex(precision))
@@ -45,6 +49,7 @@ class MandelbrotIter(val precision: Int, val iters: Int) extends Module {
 	}.elsewhen(willWrap) {
 		counting := false.B
 		io.out.valid := true.B
-		io.out.bits := didDiverge
+		io.out.bits.result := didDiverge
+		io.out.bits.c := c
 	}
 }

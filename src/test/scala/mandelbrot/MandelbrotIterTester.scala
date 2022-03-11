@@ -28,7 +28,9 @@ class MandelbrotIterTester extends AnyFlatSpec with ChiselScalatestTester {
 		}
 
 		dut.io.out.valid.expect(true.B)
-		dut.io.out.bits.expect(didDiverge.B)
+		dut.io.out.bits.result.expect(didDiverge.B)
+		dut.io.out.bits.c.re.expect(c.re.F(dut.precision.BP))
+		dut.io.out.bits.c.im.expect(c.im.F(dut.precision.BP))
 		dut.clock.step()
 		dut.io.out.valid.expect(false.B)
 		dut.io.c.ready.expect(true.B)
