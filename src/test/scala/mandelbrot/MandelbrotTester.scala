@@ -30,6 +30,7 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 	}
 
 	def doMandelbrotTest(dut: Mandelbrot) = {
+		// 2 extra cycles for input and output
 		val cyclesPerCell = dut.p.iters + 2
 		val numComputeBlocks = (dut.p.rows * dut.p.cols) / dut.p.parallelism
 		dut.clock.setTimeout(cyclesPerCell * numComputeBlocks + dut.p.cyclesPerTransfer + 1)
@@ -51,11 +52,7 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 
 	behavior of "Mandelbrot"
 	it should "just show me the output" in {
-		// precision 4 = 40x40
-		// n+2 cycles per iteration
-		val p = new MandelbrotParams(4, 1, 2, 80)
-		assert(p.rows == 40)
-		assert(p.cols == 40)
+		val p = new MandelbrotParams(4, 30, 5, 80)
 		test(new Mandelbrot(p)) { dut =>
 			doMandelbrotTest(dut)
 		}
