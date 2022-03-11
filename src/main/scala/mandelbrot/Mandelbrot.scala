@@ -59,11 +59,11 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 				val c_iter = Wire(Complex(p.precision))
 				c_iter.re := c.re + (p.step * i).F(p.precision.BP)
 				c_iter.im := c.im
-				// printf(p"connecting up $c_iter ")
+				printf(p"connecting up $c_iter ")
 				iterators(i).io.c.valid := true.B
 				iterators(i).io.c.bits := c_iter
 			}
-			// printf("\n")
+			printf("\n")
 
 			// prepare the point where our next iteration will start
 			val new_re = c.re + (p.step * p.parallelism).F(p.precision.BP)
@@ -79,8 +79,18 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 		}
 
 		// all done
-		when(iterators.map{ _.io.out.valid }.reduce{ _ && _} && willFinish) {
-			state := sending
+		when(iterators.map{ _.io.out.valid }.reduce{ _ && _ }) {
+			when(willFinish) {
+				state := sending
+			}
+
+			// store the results
+			// val rowIndex = ((iterators(0).io.out.bits.c.im - p.yMin.F(p.precision.BP)) << p.precision).asUInt
+			// val firstColIndex = ((iterators(0).io.out.bits.c.re - p.xMin.F(p.precision.BP)) << p.precision).asUInt
+			// for (i <- 0 until p.parallelism) {
+			// 	printf("getting a result\n")
+			// 	results(rowIndex)(firstColIndex + i.U) := iterators(i).io.out.bits.result
+			// }
 		}
 	}.elsewhen(state === sending) {
 		val elementsSoFar = sendCycle * p.elementsPerTransfer.U
@@ -89,7 +99,7 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 		for (i <- 0 until p.elementsPerTransfer) {
 			val col = firstCol + i.U
 			// should be a diagonal line
-			io.outBlock.bits(i) := row === col
+			io.outBlock.bits(i) := results(row)(col)
 		}
 
 		when(doneSending) {

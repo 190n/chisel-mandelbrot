@@ -53,7 +53,7 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 	it should "just show me the output" in {
 		// precision 4 = 40x40
 		// n+2 cycles per iteration
-		val p = new MandelbrotParams(4, 10, 2, 80)
+		val p = new MandelbrotParams(4, 1, 2, 80)
 		assert(p.rows == 40)
 		assert(p.cols == 40)
 		test(new Mandelbrot(p)) { dut =>
