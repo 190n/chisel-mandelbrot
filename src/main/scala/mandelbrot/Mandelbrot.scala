@@ -59,11 +59,11 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 				val c_iter = Wire(Complex(p.precision))
 				c_iter.re := c.re + (p.step * i).F(p.precision.BP)
 				c_iter.im := c.im
-				printf(p"connecting up $c_iter ")
+				// printf(p"connecting up $c_iter ")
 				iterators(i).io.c.valid := true.B
 				iterators(i).io.c.bits := c_iter
 			}
-			printf("\n")
+			// printf("\n")
 
 			// prepare the point where our next iteration will start
 			val new_re = c.re + (p.step * p.parallelism).F(p.precision.BP)

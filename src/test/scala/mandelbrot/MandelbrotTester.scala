@@ -29,20 +29,35 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 		assert(p.elementsPerTransfer == 10)
 	}
 
+	def doMandelbrotTest(dut: Mandelbrot) = {
+		val cyclesPerCell = dut.p.iters + 2
+		val numComputeBlocks = (dut.p.rows * dut.p.cols) / dut.p.parallelism
+		dut.clock.setTimeout(cyclesPerCell * numComputeBlocks + dut.p.cyclesPerTransfer + 1)
+
+		for (i <- 0 until cyclesPerCell * numComputeBlocks) {
+			dut.io.outBlock.valid.expect(false.B)
+			dut.clock.step(1)
+		}
+
+		for (r <- 0 until dut.p.rows) {
+			for (c <- 0 until dut.p.cols by dut.p.elementsPerTransfer) {
+				dut.io.outBlock.valid.expect(true.B)
+				dut.io.outBlock.bits.foreach { b => print(if (b.peekBoolean()) "#" else " ") }
+				dut.clock.step()
+			}
+			print("\n")
+		}
+	}
+
 	behavior of "Mandelbrot"
 	it should "just show me the output" in {
-		// precision 2 = 10x10
-		// expect 1000 cycles?
-		val p = new MandelbrotParams(2, 10, 2, 20)
-		assert(p.rows == 10)
-		assert(p.cols == 10)
+		// precision 4 = 40x40
+		// n+2 cycles per iteration
+		val p = new MandelbrotParams(4, 10, 2, 80)
+		assert(p.rows == 40)
+		assert(p.cols == 40)
 		test(new Mandelbrot(p)) { dut =>
-			var cycles = 0
-			while (dut.io.outBlock.valid.peekBoolean() == false) {
-				cycles += 1
-				dut.clock.step(1)
-			}
-			println(f"started transferring after $cycles cycles")
+			doMandelbrotTest(dut)
 		}
 	}
 }
