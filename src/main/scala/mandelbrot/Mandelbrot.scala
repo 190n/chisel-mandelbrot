@@ -31,7 +31,7 @@ class MandelbrotIO(p: MandelbrotParams) extends Bundle {
 	val outBlock = Valid(Vec(p.elementsPerTransfer, Bool()))
 }
 
-class Mandelbrot(p: MandelbrotParams) extends Module {
+class Mandelbrot(val p: MandelbrotParams) extends Module {
 	val io = IO(new MandelbrotIO(p))
 	val results = Reg(Vec(p.rows, Vec(p.cols, Bool())))
 	val iterators = Seq.fill(p.parallelism)(Module(new MandelbrotIter(p.precision, p.iters)))
