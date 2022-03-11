@@ -43,7 +43,7 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 		for (r <- 0 until dut.p.rows) {
 			for (c <- 0 until dut.p.cols by dut.p.elementsPerTransfer) {
 				dut.io.outBlock.valid.expect(true.B)
-				dut.io.outBlock.bits.foreach { b => print(if (b.peekBoolean()) "#" else " ") }
+				dut.io.outBlock.bits.foreach { b => print(if (b.peekBoolean()) " " else "#") }
 				dut.clock.step()
 			}
 			print("\n")
