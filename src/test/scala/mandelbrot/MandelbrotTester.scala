@@ -35,24 +35,32 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 		val numComputeBlocks = (dut.p.rows * dut.p.cols) / dut.p.parallelism
 		dut.clock.setTimeout(cyclesPerCell * numComputeBlocks + dut.p.cyclesPerTransfer + 1)
 
+		var lastRe = -99999.0
 		for (i <- 0 until cyclesPerCell * numComputeBlocks) {
 			dut.io.outBlock.valid.expect(false.B)
-			dut.clock.step(1)
+			if (dut.io.debug.didLoopRow.peekBoolean()) {
+				println(dut.io.debug.c.re.peekDouble())
+			}
+			dut.clock.step()
 		}
 
 		for (r <- 0 until dut.p.rows) {
 			for (c <- 0 until dut.p.cols by dut.p.elementsPerTransfer) {
 				dut.io.outBlock.valid.expect(true.B)
-				dut.io.outBlock.bits.foreach { b => print(if (b.peekBoolean()) " " else "#") }
+				// IN the set (shaded) <=> did NOT diverge
+				dut.io.outBlock.bits.foreach{ b => print(if (b.peekBoolean()) " " else "#") }
 				dut.clock.step()
 			}
 			print("\n")
 		}
+
+		dut.io.outBlock.valid.expect(false.B)
 	}
 
 	behavior of "Mandelbrot"
 	it should "just show me the output" in {
-		val p = new MandelbrotParams(4, 30, 5, 80)
+		// precision 3 = 20x20
+		val p = new MandelbrotParams(3, 30, 5, 80)
 		test(new Mandelbrot(p)) { dut =>
 			doMandelbrotTest(dut)
 		}
