@@ -7,7 +7,9 @@ case class MandelbrotParams(
 	precision: Int,
 	iters: Int,
 	parallelism: Int = 1,
-	cyclesPerTransfer: Int = 1
+	cyclesPerTransfer: Int = 1,
+	// the default is 2^(-precision) but default values can't reference other parameters
+	var step: Double = Double.NaN,
 ) {
 	// boundaries must be precise to at least 1/4
 	require(precision >= 2)
@@ -17,9 +19,21 @@ case class MandelbrotParams(
 	val yMin = -1.25f
 	val yMax =  1.25f
 
-	val rows = ((xMax - xMin) * (1 << precision)).toInt
-	val cols = ((yMax - yMin) * (1 << precision)).toInt
-	val step = 1.0 / (1 << precision)
+	// specify default value
+	if (step.isNaN) {
+		step = 1.0 / (1 << precision)
+	}
+
+	require(step <= 0.25)
+	require(step > 0.0)
+	// must be 1/(a power of 2) (accounting for FP inaccuracy)
+	val stepBitsFloat = -(Math.log(step) / Math.log(2.0))
+	require(Math.abs(stepBitsFloat % 1.0) < 1e-10)
+	val stepBits = Math.round(stepBitsFloat)
+	require(stepBits <= precision)
+
+	val rows = ((xMax - xMin) / step).toInt
+	val cols = ((yMax - yMin) / step).toInt
 	// process each row in an integer number of cycles
 	require(cols % parallelism == 0)
 	require((rows * cols) % cyclesPerTransfer == 0)
@@ -91,8 +105,14 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 			}
 
 			// store the results
-			val rowIndex = ((iterators(0).io.out.bits.c.im - p.yMin.F(p.precision.BP))).asUInt
-			val firstColIndex = ((iterators(0).io.out.bits.c.re - p.xMin.F(p.precision.BP))).asUInt
+			val rowIndex = (
+				(iterators(0).io.out.bits.c.im - p.yMin.F(p.precision.BP))
+				>> (p.precision - p.stepBits)
+			).asUInt
+			val firstColIndex = (
+				(iterators(0).io.out.bits.c.re - p.xMin.F(p.precision.BP))
+				>> (p.precision - p.stepBits)
+			).asUInt
 			for (i <- 0 until p.parallelism) {
 				val index = rowIndex * p.cols.U + firstColIndex + i.U
 				results(index) := iterators(i).io.out.bits.result

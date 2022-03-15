@@ -19,13 +19,29 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 		}
 		intercept[Exception] {
 			// cycles is okay, parallelism must divide number of columns
-			var p = new MandelbrotParams(4, 50, 3, 160)
+			val p = new MandelbrotParams(4, 50, 3, 160)
+		}
+		intercept[Exception] {
+			// step is not 1/(power of 2)
+			val p = new MandelbrotParams(4, 50, 3, 160, 0.1)
+		}
+		intercept[Exception] {
+			// step is too small for the given precision
+			val p = new MandelbrotParams(4, 50, 3, 160, 0.03125)
 		}
 
-		val p = new MandelbrotParams(4, 50, 1, 160)
+		val p = new MandelbrotParams(16, 50, 1, 160, 0.0625)
+		assert(p.rows == 40)
+		assert(p.cols == 40)
+		assert(p.stepBits == 4)
+		assert(p.elementsPerTransfer == 10)
+
+		// test calculating step
+		val p2 = new MandelbrotParams(4, 50, 1, 160)
 		assert(p.rows == 40)
 		assert(p.cols == 40)
 		assert(p.step == 0.0625)
+		assert(p.stepBits == 4)
 		assert(p.elementsPerTransfer == 10)
 	}
 
@@ -59,8 +75,8 @@ class MandelbrotTester extends AnyFlatSpec with ChiselScalatestTester {
 
 	behavior of "Mandelbrot"
 	it should "just show me the output" in {
-		// precision 3 = 20x20
-		val p = new MandelbrotParams(3, 30, 5, 80)
+		// step 0.125 = 20x20
+		val p = new MandelbrotParams(16, 30, 5, 80, 0.125)
 		test(new Mandelbrot(p)) { dut =>
 			doMandelbrotTest(dut)
 		}
