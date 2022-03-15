@@ -75,7 +75,6 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 			val new_re = c.re + (p.step * p.parallelism).F(p.precision.BP)
 			c.re := new_re
 			when(new_re >= p.xMax.F(p.precision.BP)) {
-				printf(p"\n")
 				val new_im = c.im + p.step.F(p.precision.BP)
 				c.re := p.xMin.F(p.precision.BP)
 				c.im := new_im
@@ -97,11 +96,6 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 			for (i <- 0 until p.parallelism) {
 				val index = rowIndex * p.cols.U + firstColIndex + i.U
 				results(index) := iterators(i).io.out.bits.result
-				when(iterators(i).io.out.bits.result) {
-					printf(p" ")
-				}.otherwise {
-					printf(p"#")
-				}
 			}
 		}
 	}.elsewhen(state === sending) {
