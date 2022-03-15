@@ -65,6 +65,7 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 				// calculate input to this iterator
 				val c_iter = Wire(Complex(p.precision))
 				c_iter.re := c.re + (p.step * i).F(p.precision.BP)
+				// printf(p"${c.re.asUInt} ${c_iter.re.asUInt}\t")
 				c_iter.im := c.im
 				iterators(i).io.c.valid := true.B
 				iterators(i).io.c.bits := c_iter
@@ -74,10 +75,10 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 			val new_re = c.re + (p.step * p.parallelism).F(p.precision.BP)
 			c.re := new_re
 			when(new_re >= p.xMax.F(p.precision.BP)) {
+				printf(p"\n")
 				val new_im = c.im + p.step.F(p.precision.BP)
 				c.re := p.xMin.F(p.precision.BP)
 				c.im := new_im
-				io.debug.didLoopRow := true.B
 				when(new_im >= p.yMax.F(p.precision.BP)) {
 					willFinish := true.B
 				}
@@ -94,7 +95,13 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 			val rowIndex = ((iterators(0).io.out.bits.c.im - p.yMin.F(p.precision.BP))).asUInt
 			val firstColIndex = ((iterators(0).io.out.bits.c.re - p.xMin.F(p.precision.BP))).asUInt
 			for (i <- 0 until p.parallelism) {
-				results(rowIndex * p.cols.U + firstColIndex + i.U) := iterators(i).io.out.bits.result
+				val index = rowIndex * p.cols.U + firstColIndex + i.U
+				results(index) := iterators(i).io.out.bits.result
+				when(iterators(i).io.out.bits.result) {
+					printf(p" ")
+				}.otherwise {
+					printf(p"#")
+				}
 			}
 		}
 	}.elsewhen(state === sending) {
@@ -103,7 +110,8 @@ class Mandelbrot(val p: MandelbrotParams) extends Module {
 		val firstCol = elementsSoFar % p.cols.U
 		for (i <- 0 until p.elementsPerTransfer) {
 			val col = firstCol + i.U
-			io.outBlock.bits(i) := results(row * p.cols.U + col)
+			val index = row * p.cols.U + col
+			io.outBlock.bits(i) := results(index)
 		}
 
 		when(doneSending) {
